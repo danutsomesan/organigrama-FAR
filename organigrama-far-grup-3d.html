@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organigrama FAR Grup — Interactivă 3D</title>
+<style>
+  :root{
+    --navy:#2C3E49;
+    --navy-deep:#22313B;
+    --navy-face:#37505F;
+    --orange:#E67E22;
+    --orange-soft:#F5CBA7;
+    --paper:#FFFFFF;
+    --line:#C7D0D6;
+    --ink:#2C3E49;
+    --muted:#6B7A85;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:Calibri,'Segoe UI',Arial,sans-serif;
+    background:var(--paper);color:var(--ink);
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+
+  /* ===================== HEADER ===================== */
+  .top{display:flex;align-items:center;justify-content:center;gap:18px;padding:22px 16px 6px;}
+  .logo{border:1.5px solid var(--navy);padding:8px 14px 6px;line-height:1;text-align:center;flex:0 0 auto;}
+  .logo b{font-size:22px;letter-spacing:1px;color:var(--navy);font-family:Arial,sans-serif;}
+  .logo span{display:block;font-size:6.5px;letter-spacing:3.2px;color:var(--orange);margin-top:3px;}
+  h1{font-family:Arial,sans-serif;font-size:clamp(19px,3.2vw,28px);letter-spacing:.5px;color:var(--navy);font-weight:700;text-align:center;}
+  .sub{text-align:center;font-size:12.5px;color:var(--muted);margin-bottom:14px;}
+  .sub b{color:var(--orange);font-weight:600;}
+
+  /* ===================== CEO ===================== */
+  .ceo-wrap{display:flex;flex-direction:column;align-items:center;}
+  .ceo{background:var(--navy);color:#fff;border-radius:6px;padding:10px 26px;text-align:center;box-shadow:0 6px 18px rgba(44,62,73,.25);}
+  .ceo .t{font-size:11px;letter-spacing:2.5px;color:var(--orange-soft);text-transform:uppercase;}
+  .ceo .n{font-size:16px;font-weight:700;margin-top:2px;}
+  .asist{margin-top:8px;font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:4px 12px;background:#fff;}
+  .asist b{color:var(--navy);font-weight:600;}
+  .stem{width:2px;height:20px;background:var(--line);}
+
+  /* ===================== GRID DEPARTAMENTE ===================== */
+  .grid{
+    max-width:1180px;margin:0 auto;padding:18px 16px 26px;
+    display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));
+    perspective:1100px;
+  }
+  .dept{
+    background:#fff;border:1px solid var(--line);border-radius:8px;cursor:pointer;overflow:hidden;position:relative;
+    transform-style:preserve-3d;transition:transform .35s cubic-bezier(.2,.8,.3,1.1),box-shadow .35s;
+    box-shadow:0 1px 3px rgba(44,62,73,.10);text-align:left;font:inherit;color:inherit;display:block;width:100%;
+  }
+  .dept:hover,.dept:focus-visible{
+    transform:translateY(-5px) rotateX(6deg) rotateY(-4deg) scale(1.02);
+    box-shadow:0 16px 30px rgba(44,62,73,.22);outline:none;
+  }
+  .dept:focus-visible{border-color:var(--orange);}
+  .dept .band{
+    background:linear-gradient(135deg,var(--orange) 0%,#F39C4A 100%);color:#fff;
+    padding:8px 10px;font-weight:700;font-size:13px;line-height:1.25;min-height:46px;display:flex;align-items:center;
+  }
+  .dept .body{padding:8px 10px 10px;}
+  .dept .sef{font-size:12px;color:var(--navy);font-weight:600;}
+  .dept .cnt{font-size:11px;color:var(--muted);margin-top:3px;}
+  .dept .cta{position:absolute;right:8px;bottom:8px;font-size:10px;letter-spacing:1px;color:var(--orange);font-weight:700;opacity:0;transition:opacity .3s;}
+  .dept:hover .cta,.dept:focus-visible .cta{opacity:1;}
+
+  .updated{max-width:1180px;margin:0 auto;padding:0 16px 20px;font-size:11px;color:var(--muted);text-align:right;}
+
+  /* ===================== OVERLAY 3D ===================== */
+  .overlay{
+    position:fixed;inset:0;z-index:50;display:none;flex-direction:column;
+    background:
+      radial-gradient(900px 500px at 50% 12%, rgba(230,126,34,.20) 0%, transparent 60%),
+      radial-gradient(1200px 800px at 50% 120%, #4E6B80 0%, transparent 55%),
+      linear-gradient(180deg,#3A5265 0%, #2C3E49 55%, #1B262E 100%);
+  }
+  .overlay.open{display:flex;animation:fadeIn .35s ease;}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+  .ov-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;color:#fff;gap:12px;position:relative;z-index:3;}
+  .ov-title{font-family:Arial,sans-serif;font-weight:700;font-size:clamp(15px,2.6vw,21px);letter-spacing:.4px;min-width:0;}
+  .ov-title small{display:block;font-size:11px;font-weight:400;color:var(--orange-soft);letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;}
+  .ov-title .who{font-size:12px;font-weight:400;color:#C9D4DB;margin-top:3px;}
+  .ov-close{
+    background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.25);color:#fff;
+    border-radius:6px;padding:8px 16px;font:inherit;font-size:13px;cursor:pointer;transition:background .25s;flex:0 0 auto;
+  }
+  .ov-close:hover{background:var(--orange);border-color:var(--orange);}
+
+  /* scenă cu figurine */
+  .stage{
+    flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 20px 40px;position:relative;z-index:2;
+    perspective:1300px;
+  }
+  /* pardoseală ambientală */
+  .stage::before{
+    content:"";position:fixed;left:0;right:0;bottom:0;height:42%;z-index:-1;pointer-events:none;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 1px, transparent 1px 60px),
+      linear-gradient(180deg, transparent, rgba(0,0,0,.35));
+    transform:perspective(600px) rotateX(60deg);transform-origin:bottom;
+    mask-image:linear-gradient(180deg, transparent, #000 40%);
+  }
+
+  .subunit{margin:0 auto 30px;max-width:1120px;}
+  .subunit-h{
+    display:flex;align-items:center;gap:10px;margin:8px 4px 20px;color:#fff;
+  }
+  .subunit-h .tag{
+    background:var(--orange);color:#fff;font-family:Arial,sans-serif;font-weight:700;
+    font-size:13px;padding:5px 14px;border-radius:20px;box-shadow:0 4px 12px rgba(230,126,34,.4);
+  }
+  .subunit-h .rule{flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.4),transparent);}
+  .subunit-h .lk{
+    font-size:11px;color:var(--orange-soft);text-decoration:none;border:1px solid rgba(245,203,167,.5);
+    padding:3px 10px;border-radius:14px;transition:all .2s;
+  }
+  .subunit-h .lk:hover{background:var(--orange);color:#fff;border-color:var(--orange);}
+
+  .crowd{
+    display:flex;flex-wrap:wrap;gap:26px 20px;justify-content:center;
+  }
+
+  /* --- figurina 3D a unei persoane --- */
+  .actor{
+    width:118px;display:flex;flex-direction:column;align-items:center;text-align:center;
+    cursor:default;
+  }
+  .fig{
+    position:relative;width:66px;height:96px;transform-style:preserve-3d;
+    transform:rotateX(6deg);
+    animation:sway 5s ease-in-out infinite;
+  }
+  .actor:nth-child(2n) .fig{animation-delay:-1.2s;}
+  .actor:nth-child(3n) .fig{animation-delay:-2.4s;}
+  .actor:nth-child(4n) .fig{animation-delay:-3.6s;}
+  @keyframes sway{
+    0%,100%{transform:rotateX(6deg) rotateY(-7deg) translateY(0);}
+    50%{transform:rotateX(6deg) rotateY(7deg) translateY(-5px);}
+  }
+  /* umbra pe podea */
+  .fig::after{
+    content:"";position:absolute;left:50%;bottom:-10px;width:52px;height:13px;
+    transform:translateX(-50%);border-radius:50%;
+    background:radial-gradient(ellipse at center, rgba(0,0,0,.45), transparent 70%);
+    filter:blur(1px);
+  }
+  /* cap */
+  .head{
+    position:absolute;left:50%;top:0;width:30px;height:30px;transform:translateX(-50%);
+    border-radius:50%;
+    background:radial-gradient(circle at 34% 30%, #FBE0C4, var(--head-sh,#E7B98D) 78%);
+    box-shadow:inset -3px -3px 6px rgba(0,0,0,.18);
+    z-index:3;
+  }
+  /* gât */
+  .neck{
+    position:absolute;left:50%;top:27px;width:12px;height:9px;transform:translateX(-50%);
+    background:var(--head-sh,#E7B98D);border-radius:0 0 4px 4px;z-index:1;
+  }
+  /* corp / bust */
+  .body3d{
+    position:absolute;left:50%;top:34px;width:58px;height:62px;transform:translateX(-50%);
+    border-radius:26px 26px 14px 14px;
+    background:linear-gradient(135deg, var(--suit-hi) 0%, var(--suit) 60%, var(--suit-sh) 100%);
+    box-shadow:inset -5px -6px 12px rgba(0,0,0,.28), inset 5px 5px 10px rgba(255,255,255,.14);
+    z-index:2;
+  }
+  /* guler / decolteu în V */
+  .body3d::before{
+    content:"";position:absolute;left:50%;top:0;transform:translateX(-50%);
+    border-left:12px solid transparent;border-right:12px solid transparent;
+    border-top:16px solid rgba(255,255,255,.85);
+  }
+  /* inițiale pe piept (ecuson) */
+  .badge{
+    position:absolute;left:50%;top:40px;transform:translateX(-50%);z-index:4;
+    font-family:Arial,sans-serif;font-weight:800;font-size:12px;letter-spacing:.5px;
+    color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+  .actor.lead .head{width:32px;height:32px;}
+  .actor.lead .badge{color:#fff;}
+  .actor.lead .fig::before{ /* aură pentru șefi */
+    content:"";position:absolute;inset:-6px -10px;border-radius:40px;z-index:0;
+    background:radial-gradient(ellipse at 50% 40%, rgba(230,126,34,.30), transparent 70%);
+  }
+  .actor.vacant .fig{opacity:.55;filter:grayscale(.6);}
+  .actor.vacant .body3d{--suit:#8595A0;--suit-hi:#A9B6BF;--suit-sh:#63727C;}
+
+  .a-nume{margin-top:16px;font-size:13px;font-weight:700;color:#fff;line-height:1.2;}
+  .actor.vacant .a-nume{font-style:italic;font-weight:400;color:#C9D4DB;}
+  .a-rol{margin-top:2px;font-size:10.5px;color:var(--orange-soft);letter-spacing:.4px;font-weight:600;line-height:1.25;}
+  .actor.lead .a-rol{color:#FFD9A6;}
+
+  .ov-hint{text-align:center;color:rgba(255,255,255,.5);font-size:11.5px;letter-spacing:.4px;padding:2px 0 10px;user-select:none;position:relative;z-index:3;}
+
+  @media (prefers-reduced-motion:reduce){
+    .fig{animation:none;}
+    .dept,.dept:hover{transition:none;transform:none;}
+    .overlay.open{animation:none;}
+  }
+  @media (max-width:560px){
+    .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
+    .crowd{gap:22px 12px;}
+    .actor{width:96px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="logo"><b>F&Lambda;R</b><span>FOUNDATION</span></div>
+  <h1>ORGANIGRAMA FAR GRUP</h1>
+</div>
+<p class="sub">Apasă pe un departament pentru a vedea <b>echipa în 3D</b></p>
+
+<div class="ceo-wrap">
+  <div class="ceo" id="ceoCard"></div>
+  <div class="asist" id="asistCard"></div>
+  <div class="stem"></div>
+</div>
+
+<div class="grid" id="grid"></div>
+<div class="updated" id="updated"></div>
+
+<!-- ===== OVERLAY 3D ===== -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="ovName">
+  <div class="ov-bar">
+    <div class="ov-title"><small>Departament</small><span id="ovName"></span><span class="who" id="ovWho"></span></div>
+    <button class="ov-close" id="ovClose">&#10005; &Icirc;nchide (Esc)</button>
+  </div>
+  <div class="stage" id="stage"></div>
+  <div class="ov-hint" id="ovHint"></div>
+</div>
+
+<script>
+const ORG = {
+  actualizat: "07.08.2026",
+  ceo: { titlu: "CEO", nume: "Alexandru Farcaș" },
+  asistent: { titlu: "Asistent Executiv", nume: "Ionuț Biro" },
+  departamente: [
+
+    { nume:"Dezvoltare strategică", sef:"Harald Braun", subunitati:[
+      { nume:"Licitații", url:"", echipa:[
+        {rol:"Manager Licitații", nume:"Anca Pop"},
+        {rol:"Economist Licitații", nume:"Dorina Jakab"},
+        {rol:"Inginer Ec. Licitații", nume:"Dana Someșan"},
+        {rol:"Analist Licitații", nume:"Diana Polgar"},
+        {rol:"Analist Licitații", nume:"Alexandra Rus"},
+        {rol:"Analist Licitații", nume:""},
+        {rol:"Consultanță externalizată", nume:"—"}
+      ]},
+      { nume:"Contract Management", url:"", echipa:[] }
+    ]},
+
+    { nume:"Construcții Civile", sef:"Iosif Szabo", subunitati:[
+      { nume:"Echipă proiect", url:"", echipa:[
+        {rol:"Asistent Manager", nume:"Simina Ungureanu"},
+        {rol:"Proiect Chinteni — Manager Proiect", nume:"Ovidiu Vinasi"},
+        {rol:"Proiect Chinteni — Șef Șantier", nume:"Adrian Herța"},
+        {rol:"Proiect Muzeu — Manager Proiect", nume:"Ionuț Stanca"},
+        {rol:"Proiect Muzeu — Șef Șantier", nume:"Alin Vaida"},
+        {rol:"Proiect Spital Ciuc — Șef Șantier", nume:"Bogdan Chiorean"},
+        {rol:"Proiect Spital Oaș — Mgr. Proiect Adj.", nume:"Ionuț Pișchiș"},
+        {rol:"Proiect Spital Oaș — Șef Șantier", nume:"Ionuț Filimon"},
+        {rol:"Proiect Creșe — Manager Proiect", nume:"Vlad Tompea, Petrică Pop"},
+        {rol:"Proiect Creșe — Șefi Șantier", nume:"R. Berekmeri, A. Munteanu, D. Mureșan, A. Cămăruț"}
+      ]},
+      { nume:"Departament tehnic", url:"", echipa:[
+        {rol:"Șef departament Tehnic", nume:"Denisa Pop"},
+        {rol:"Inginer construcții", nume:"Antonia Koller"},
+        {rol:"Inginer construcții", nume:"Dănuța Porcius"},
+        {rol:"Inginer construcții", nume:"Andreea Avasiloaie"},
+        {rol:"Inginer construcții", nume:"Beatrice Matiș"},
+        {rol:"Inginer construcții", nume:"Alexandra Motogna"}
+      ]},
+      { nume:"Departament Devize", url:"", echipa:[
+        {rol:"Șef departament Devize", nume:"Ana Agrișan"},
+        {rol:"Tehnician Devize", nume:"Constantin Popescu"},
+        {rol:"Tehnician Devize", nume:"Silviu Cicșa"},
+        {rol:"Tehnician Devize", nume:"Cristina Târnăvan"},
+        {rol:"Tehnician Devize", nume:"Delia Ilieș"}
+      ]}
+    ]},
+
+    { nume:"Infrastructură Rutieră", sef:"Vladimir David", subunitati:[
+      { nume:"Echipă proiect", url:"", echipa:[
+        {rol:"Manager Proiect", nume:"Vladimir David"},
+        {rol:"Manager Proiect Tehnic", nume:"Silviu Sala"},
+        {rol:"Șef Șantier", nume:"Ghiță Strugar"},
+        {rol:"Inginer CFDP", nume:"Andrei Florescu"},
+        {rol:"Tehnician Construcții", nume:"Ghiță Timiș, Dumitru Cosmin"},
+        {rol:"Inginer CQ", nume:"Raul Tocaci, Viorica Timu, Adriana Rus"},
+        {rol:"Echipe Muncitori", nume:"Vasile Roman, Neluțu Mureșan"}
+      ]},
+      { nume:"Departament tehnic", url:"", echipa:[
+        {rol:"Economist", nume:"Mădălina Apostol"},
+        {rol:"Responsabil Achiziții", nume:"Sergiu Frătean"},
+        {rol:"Magazioner", nume:"Marius Rauca"},
+        {rol:"Coordonator transport", nume:"Liviu Maier"},
+        {rol:"Contract Manager", nume:""}
+      ]},
+      { nume:"Echipă Topo", url:"", echipa:[
+        {rol:"Topograf Coordonator", nume:"Sorin Galben"},
+        {rol:"Asistent Topograf", nume:"Onița Pudilic"},
+        {rol:"Ing. Topograf Drumuri", nume:"Florin Dos, Artur Airizer, R. Laszlo Debreczeni, Aurel Mureșian, Emilian Lăzăruț"},
+        {rol:"Ing. Topograf Civile", nume:"Tudor Marc"}
+      ]}
+    ]},
+
+    { nume:"Producție", sef:"Mirela Isip", subunitati:[
+      { nume:"Stație betoane", url:"", echipa:[
+        {rol:"Șef stație betoane", nume:"Ionuț Fetti"},
+        {rol:"Inginer producție", nume:"Ionuț Ignat"},
+        {rol:"Șoferi / Operatori utilaj", nume:"—"},
+        {rol:"Muncitori necalificați", nume:"—"}
+      ]},
+      { nume:"Stație asfalt", url:"", echipa:[
+        {rol:"Șef stație asfalt", nume:"Daniel Kantor"},
+        {rol:"Șef stație asfalt", nume:"Marian Puian"},
+        {rol:"Șef stație Reghin", nume:"Radu Ulici"},
+        {rol:"Operator date economice", nume:"Lucica Ulici"},
+        {rol:"Operator date", nume:"Marinela-Melisa Ceuca"},
+        {rol:"Operatori utilaj / Muncitori", nume:"—"}
+      ]},
+      { nume:"Carieră", url:"", echipa:[
+        {rol:"Șef echipă carieră", nume:"Alex Ureche"},
+        {rol:"Operatori utilaj / Muncitori", nume:"—"}
+      ]},
+      { nume:"Laborator", url:"", echipa:[
+        {rol:"Șef Laborator", nume:"Attila Puskacs"},
+        {rol:"Laborant coordonator", nume:"Vasile Băgăcean"},
+        {rol:"Laborant", nume:"Lorena Cadar"},
+        {rol:"Inginer calitate", nume:"Paul Rus"},
+        {rol:"Șef Laborator Dex", nume:"Claudia Nedeluși"},
+        {rol:"Șef profil", nume:"Cătălin Pop"}
+      ]}
+    ]},
+
+    { nume:"SCM", sef:"", subunitati:[
+      { nume:"Achiziții materiale", url:"", echipa:[
+        {rol:"Manager Achiziții", nume:"Sorina Neamțu"},
+        {rol:"Specialist Achiziții", nume:"Paul Petrea"},
+        {rol:"Specialist Achiziții", nume:"Sergiu Frătean"},
+        {rol:"Specialist Achiziții", nume:"Floarea Catone"},
+        {rol:"Specialist Achiziții", nume:"Cornel Biliga"},
+        {rol:"Specialist Achiziții", nume:"Roxana Marian"},
+        {rol:"Specialist Achiziții", nume:"Rareș Baba"},
+        {rol:"Specialist Achiziții", nume:"Gabriela Pop"},
+        {rol:"Specialist Achiziții", nume:"Mihai Sumănariu"},
+        {rol:"Economist", nume:""}
+      ]},
+      { nume:"Achiziții servicii", url:"", echipa:[
+        {rol:"Coordonator Achiziții servicii", nume:"Ambrozia Man"},
+        {rol:"Specialist Achiziții", nume:""},
+        {rol:"Specialist Achiziții", nume:""}
+      ]},
+      { nume:"Gestiune", url:"", echipa:[
+        {rol:"Gestionar", nume:"Andrei Vas"},
+        {rol:"Operator Gestiune", nume:"Ionuț Timiș"}
+      ]}
+    ]},
+
+    { nume:"Mecanizare", sef:"Daniel Ureche", subunitati:[
+      { nume:"Administrativ", url:"", echipa:[
+        {rol:"Administrator flotă", nume:"Sabin Mariș"},
+        {rol:"Referent Logistică Coord.", nume:"Oana Gîdea"},
+        {rol:"Referent Logistică", nume:"Andrei Mihalczi"},
+        {rol:"Referent Logistică", nume:"Antonia Pance"},
+        {rol:"Referent Logistică", nume:"Levi Cicai"},
+        {rol:"Referent logistică (Parc Auto)", nume:"Emanuel Vlașin"},
+        {rol:"Coordonator transport (Parc Auto)", nume:"Dinu Călugăr"},
+        {rol:"Operator date", nume:"Ruth Avram"}
+      ]},
+      { nume:"Operațional", url:"", echipa:[
+        {rol:"Șef secție Mecanizare", nume:"Daniel Ureche"},
+        {rol:"Coordonator transport IR", nume:"Liviu Maier"},
+        {rol:"Șef echipă", nume:"Daniel Grappini"},
+        {rol:"Responsabil bază Feldru", nume:"Emanuel Cicai"},
+        {rol:"(Aj) Mecanici Feldru / Harghita", nume:"—"},
+        {rol:"Conducători auto / Operatori utilaje", nume:"—"}
+      ]}
+    ]},
+
+    { nume:"Financiar", sef:"Paula Taloș", subunitati:[
+      { nume:"Financiar", url:"", echipa:[
+        {rol:"Șef birou Financiar", nume:"Ana Doce"},
+        {rol:"Economist", nume:"Andreea Șteff"},
+        {rol:"Func. Economic / Resp. Casierie", nume:"Viorica Sîngeorzan"},
+        {rol:"Economist", nume:"David Andrei"},
+        {rol:"Economist", nume:"Andreea Schon"},
+        {rol:"Economist", nume:"Ioana Olteanu"}
+      ]},
+      { nume:"Contabilitate", url:"", echipa:[
+        {rol:"Contabil Șef", nume:"Mariana Băbuțan"},
+        {rol:"Economist Senior", nume:"Daniela Swoboda"},
+        {rol:"Contabil", nume:"Mia Tofan"},
+        {rol:"Economist", nume:"Dana Pașcan"},
+        {rol:"Economist", nume:"Paula Bălai"},
+        {rol:"Economist", nume:"Andrada Rotariu"}
+      ]},
+      { nume:"Cost Control", url:"", echipa:[
+        {rol:"Manager Cost Control", nume:"Cristian Lechințan"},
+        {rol:"Operator date", nume:"Cristina Maier"},
+        {rol:"Economist", nume:"Mihaela"},
+        {rol:"Economist", nume:"Angela Eremei"}
+      ]}
+    ]},
+
+    { nume:"Relații instituții financiare", sef:"Cristina Totu", subunitati:[
+      { nume:"Relații instituții financiare", url:"", echipa:[
+        {rol:"Manager Relații instituții financiare", nume:"Valerica Gliga"},
+        {rol:"Analist Financiar Senior", nume:"Laura Țârlea"},
+        {rol:"Analist Credite", nume:"Iris Teodorescu"},
+        {rol:"Analist Credite", nume:"Ana-Maria Duprii"}
+      ]}
+    ]},
+
+    { nume:"Dezvoltare organizațională", sef:"Cristina Herciug", subunitati:[
+      { nume:"Resurse Umane", url:"", echipa:[
+        {rol:"Șef dep. Administrare personal", nume:"Dana Cindrea"},
+        {rol:"Specialist Resurse Umane", nume:"Daiana Galeriu"},
+        {rol:"Analist Resurse Umane", nume:"Iulia Hasnăș"},
+        {rol:"Specialist Dezvoltare Organizațională", nume:"Dan Serețan"},
+        {rol:"Analist Resurse Umane", nume:"Elena Tomi"},
+        {rol:"Asistent Manager", nume:""}
+      ]},
+      { nume:"Marketing", url:"", echipa:[
+        {rol:"Specialist Marketing", nume:"Abel Fortuna"}
+      ]},
+      { nume:"Sisteme Management", url:"", echipa:[
+        {rol:"Ing. îmbunătățire procese", nume:"Dănuț Someșan"},
+        {rol:"Analist procese", nume:""}
+      ]}
+    ]},
+
+    { nume:"Operațiuni", sef:"Natanael Farcaș", subunitati:[
+      { nume:"IT", url:"", echipa:[
+        {rol:"Manager Proiect Digitalizare", nume:"Laura Banc"},
+        {rol:"Consultant IT", nume:"Tiberiu Franciuc"},
+        {rol:"Administrator IT", nume:"Cristi Bucur"},
+        {rol:"Admin. Baze Date", nume:"Marius Chiuzan"},
+        {rol:"Admin. Sistem IT", nume:"Flavius Vranău"},
+        {rol:"Inginer IT", nume:"Vlad Timoce"},
+        {rol:"Tehnician IT", nume:"Adrian Lazăr"},
+        {rol:"Asistent IT", nume:"Daniel Slădaru"}
+      ]}
+    ]},
+
+    { nume:"Administrativ", sef:"", subunitati:[
+      { nume:"Secretariat", url:"", echipa:[
+        {rol:"Asistent Executiv", nume:"Ionuț Biro"},
+        {rol:"Asistent Manager", nume:"Aurelia Braun"},
+        {rol:"Asistent Manager", nume:"Timea Antal"},
+        {rol:"Asistent Recepție", nume:"Maria Veronica Pop"},
+        {rol:"Asistent Administrativ", nume:"Maria Ureche"},
+        {rol:"Reporting Assistant", nume:""},
+        {rol:"Legal Assistant", nume:""}
+      ]},
+      { nume:"Electricieni Instalatori", url:"", echipa:[
+        {rol:"Echipă electricieni", nume:"Deac Tiberiu"},
+        {rol:"Echipă instalatori", nume:""},
+        {rol:"Șofer B", nume:"Daniel Holbură"}
+      ]}
+    ]},
+
+    { nume:"Asigurare Conformitate", sef:"", subunitati:[
+      { nume:"Mediu-Certificări", url:"", echipa:[
+        {rol:"Manager dep. Mediu-Certificări", nume:"Ana Coman"},
+        {rol:"Analist Mediu", nume:"Angelica Moldovan"},
+        {rol:"Responsabil Mediu", nume:"Anna Bodi"},
+        {rol:"Responsabil Mediu", nume:""}
+      ]},
+      { nume:"SSM/PSI/RSVTI", url:"", echipa:[
+        {rol:"Responsabil SSM, PSI, RSVTI", nume:"Cosmin Haja"},
+        {rol:"Cadru Tehnic PSI", nume:"Florin Petrean"},
+        {rol:"Operator Date", nume:"Izabella Antal"}
+      ]},
+      { nume:"Conformitate", url:"", echipa:[
+        {rol:"Ofițer Conformitate", nume:"Ambrozia Man"},
+        {rol:"Ofițer Conformitate", nume:"Marius Toma, Marica Ion"}
+      ]},
+      { nume:"Juridic", url:"", echipa:[
+        {rol:"Consilier Juridic", nume:"Cristina Sîngeorzan"},
+        {rol:"Avocați colaboratori", nume:"—"}
+      ]}
+    ]}
+  ]
+};
+/* ===================== RANDARE HARTĂ ===================== */
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+/* paletă de costume, atribuită determinist după nume => culoare stabilă */
+const SUITS = [
+  {suit:"#2C3E49", hi:"#48606F", sh:"#1C2A32"},  /* navy */
+  {suit:"#5B7488", hi:"#7590A4", sh:"#3F5568"},  /* albastru-gri */
+  {suit:"#8C5A3B", hi:"#AA7551", sh:"#68402A"},  /* teracotă închis */
+  {suit:"#4A6058", hi:"#688177", sh:"#33453F"},  /* verde-petrol */
+  {suit:"#6E5A7A", hi:"#8C769A", sh:"#4E3F58"},  /* prună */
+  {suit:"#3D5A73", hi:"#587994", sh:"#2A4051"}   /* bleu profund */
+];
+const SKINS = ["#E7B98D","#D9A67B","#C68A5E","#F0C9A0"];
+
+function hashStr(s){ let h=0; for(let i=0;i<s.length;i++){ h=(h*31 + s.charCodeAt(i))>>>0; } return h; }
+
+function initials(n){
+  const p = n.trim().split(/\s+/).filter(Boolean);
+  if(!p.length) return "?";
+  return (p[0][0] + (p[1] ? p[1][0] : "")).toUpperCase();
+}
+/* separă „Prenume Nume" pentru afișare pe două rânduri dacă e lung */
+function fmtName(n){ return esc(n); }
+
+document.getElementById("ceoCard").innerHTML =
+  '<div class="t">'+esc(ORG.ceo.titlu)+'</div><div class="n">'+esc(ORG.ceo.nume)+'</div>';
+document.getElementById("asistCard").innerHTML =
+  esc(ORG.asistent.titlu)+': <b>'+esc(ORG.asistent.nume)+'</b>';
+document.getElementById("updated").textContent = "Actualizat: " + ORG.actualizat;
+
+function teamSize(d){
+  return d.subunitati.reduce((a,s)=>a+s.echipa.filter(m=>m.nume && m.nume!=="—").length,0);
+}
+/* un rol e „de conducere" dacă începe cu aceste cuvinte */
+const LEAD_RE = /^(CEO|Director|Manager|Șef|Sef|Coordonator|Contabil Șef|Ofițer|Responsabil)\b/i;
+
+const grid = document.getElementById("grid");
+ORG.departamente.forEach((d,i)=>{
+  const b = document.createElement("button");
+  b.className = "dept";
+  const ppl = teamSize(d);
+  b.innerHTML =
+    '<div class="band">'+esc(d.nume)+'</div>'+
+    '<div class="body">'+
+      (d.sef ? '<div class="sef">'+esc(d.sef)+'</div>' : '<div class="sef" style="color:var(--muted);font-weight:400">&mdash;</div>')+
+      '<div class="cnt">'+d.subunitati.length+' subunit'+(d.subunitati.length===1?'ate':'ăți')+
+      (ppl? ' &bull; '+ppl+' pers.':'')+'</div>'+
+    '</div><span class="cta">VEZI ECHIPA &rarr;</span>';
+  b.addEventListener("click", ()=>openDept(i));
+  grid.appendChild(b);
+});
+
+/* ===================== SCENA CU FIGURINE ===================== */
+const overlay = document.getElementById("overlay");
+const stage   = document.getElementById("stage");
+let lastFocus = null;
+
+/* construiește o figurină 3D pentru un membru */
+function makeActor(m){
+  const vac = !m.nume;
+  const grp = m.nume === "—";
+  const lead = LEAD_RE.test(m.rol);
+  const key = (m.nume && !grp) ? m.nume : m.rol;
+  const suit = SUITS[ hashStr(m.rol) % SUITS.length ];
+  const skin = SKINS[ hashStr(key) % SKINS.length ];
+
+  const a = document.createElement("div");
+  a.className = "actor" + (lead ? " lead" : "") + (vac ? " vacant" : "");
+  a.style.setProperty("--suit", suit.suit);
+  a.style.setProperty("--suit-hi", suit.hi);
+  a.style.setProperty("--suit-sh", suit.sh);
+  a.style.setProperty("--head-sh", skin);
+
+  const badge = vac ? "?" : (grp ? "&bull;&bull;&bull;" : esc(initials(m.nume)));
+  const nameTxt = vac ? "poziție vacantă" : fmtName(m.nume);
+
+  a.innerHTML =
+    '<div class="fig">'+
+      '<div class="head"></div>'+
+      '<div class="neck"></div>'+
+      '<div class="body3d"></div>'+
+      '<div class="badge">'+badge+'</div>'+
+    '</div>'+
+    '<div class="a-nume">'+nameTxt+'</div>'+
+    '<div class="a-rol">'+esc(m.rol)+'</div>';
+  return a;
+}
+
+function openDept(i){
+  const d = ORG.departamente[i];
+  lastFocus = document.activeElement;
+  document.getElementById("ovName").textContent = d.nume;
+  document.getElementById("ovWho").textContent = d.sef ? ("Responsabil: " + d.sef) : "";
+
+  const ppl = teamSize(d);
+  document.getElementById("ovHint").textContent =
+    ppl + " persoane • " + d.subunitati.length + " subunit" + (d.subunitati.length===1?"ate":"ăți");
+
+  stage.innerHTML = "";
+  d.subunitati.forEach(s=>{
+    const sec = document.createElement("section");
+    sec.className = "subunit";
+    const head = document.createElement("div");
+    head.className = "subunit-h";
+    head.innerHTML =
+      '<span class="tag">'+esc(s.nume)+'</span><span class="rule"></span>'+
+      (s.url ? '<a class="lk" href="'+esc(s.url)+'" target="_blank" rel="noopener">Deschide pagina &rarr;</a>' : '');
+    sec.appendChild(head);
+
+    const crowd = document.createElement("div");
+    crowd.className = "crowd";
+    if(!s.echipa.length){
+      const p = document.createElement("div");
+      p.style.cssText = "color:#C9D4DB;font-size:13px;padding:10px 0 20px;";
+      p.textContent = "Structura detaliată a acestei subunități nu este încă definită în organigramă.";
+      sec.appendChild(p);
+    } else {
+      s.echipa.forEach(m=> crowd.appendChild(makeActor(m)) );
+      sec.appendChild(crowd);
+    }
+    stage.appendChild(sec);
+  });
+
+  stage.scrollTop = 0;
+  overlay.classList.add("open");
+  document.getElementById("ovClose").focus();
+}
+
+function closeOv(){
+  overlay.classList.remove("open");
+  if(lastFocus) lastFocus.focus();
+}
+document.getElementById("ovClose").addEventListener("click", closeOv);
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape" && overlay.classList.contains("open")) closeOv();
+});
+</script>
+</body>
+</html>
